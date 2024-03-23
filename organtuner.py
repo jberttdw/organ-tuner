@@ -105,7 +105,8 @@ try:
         currentNote = notes[currentNoteIndex]
 
 finally:
-        print("Turning off last note")
-        msg = mido.Message('note_off', channel=outChannel, note=currentNote)
-        port.send(msg)
+        print("Turning off all notes")
+        port.panic()
+        port.reset()
+        port.close()
 
