@@ -1,0 +1,5 @@
+-r requirements-common.txt
+
+# Older distribution of rtmidi, doesn't need compiler
+python-rtmidi
+
