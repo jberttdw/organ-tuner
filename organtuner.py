@@ -64,6 +64,16 @@ class _GetchWindows:
     def __call__(self):
         import msvcrt
         return msvcrt.getwch().encode()
+    
+def get_note_name(currentNote):
+    note_names = ['C','C#','D','D#','E','F','F#','G','G#','A','Bb','B']
+    # Helmholtz / German notation. Octave indication works differently though
+    # note_names = ['c','c#','d','d#','e','f','f#','g','g#','a','b','h']
+    root_note = 60
+    octave_offset = 2 # Assumption that middle C is C3, lowest is C-2
+    index = (currentNote) % 12
+    octave = int(currentNote / 12) - octave_offset
+    return '{}{}'.format(note_names[index], octave)
 
 
 getch = _Getch()
@@ -79,6 +89,7 @@ else:
 
 maxNoteIndex = len(notes)
 currentNote = notes[currentNoteIndex]
+currentNoteName = get_note_name(currentNote)
 
 # Mostly for testing: use organ instrument
 instrmsg = mido.Message('program_change', program=16, channel=outChannel)
@@ -90,7 +101,7 @@ try:
     while True:
         msg = mido.Message('note_on', channel=outChannel, note=currentNote)
         port.send(msg)
-        print('Sounding {}'.format(currentNote))
+        print('Sounding {:<3} - {}'.format(currentNoteName, currentNote))
 
         time.sleep(progressDelay)
 
@@ -106,6 +117,7 @@ try:
         if (currentNoteIndex >= maxNoteIndex):
             currentNoteIndex = 0
         currentNote = notes[currentNoteIndex]
+        currentNoteName = get_note_name(currentNote)
 
 finally:
         print("Turning off all notes")
