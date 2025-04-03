@@ -27,10 +27,11 @@ args = argparser.parse_args()
 port = mido.open_output(args.port)
 print(f"Port {args.port} opened")
 
+
+
 # Based on https://stackoverflow.com/a/510404 to be able to test this on Windows
 class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
-screen."""
+    """Gets a single character from standard input.  Does not echo to the screen."""
     def __init__(self):
         try:
             self.impl = _GetchWindows()
@@ -71,10 +72,11 @@ outChannel = (args.channel - 1)
 
 if (args.channel == 0):
     notes = list(range(36,66))
+    currentNoteIndex = 14
 else:
     notes = list(range(36,97))
+    currentNoteIndex = 14
 
-currentNoteIndex = 0
 maxNoteIndex = len(notes)
 currentNote = notes[currentNoteIndex]
 
@@ -88,6 +90,7 @@ try:
     while True:
         msg = mido.Message('note_on', channel=outChannel, note=currentNote)
         port.send(msg)
+        print('Sounding {}'.format(currentNote))
 
         time.sleep(progressDelay)
 
