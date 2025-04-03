@@ -80,7 +80,10 @@ getch = _Getch()
 
 outChannel = (args.channel - 1)
 
-if (args.channel == 0):
+
+
+
+if (args.channel == 1):
     notes = list(range(36,66))
     currentNoteIndex = 14
 else:
