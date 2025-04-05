@@ -5,12 +5,11 @@
 # https://stackoverflow.com/questions/54745576/detecting-the-buttons-on-a-bluetooth-remote-hid-over-gatt
 
 import mido
-#import evdev
 import argparse
 import time
-
-# How long to wait between notes when holding down a key
-progressDelay = 0.2
+import tkinter as tk
+from organcontroller import *
+from organinstrument import *
 
 ports = mido.get_output_names()
 
@@ -20,111 +19,119 @@ print(portinfo)
 argparser = argparse.ArgumentParser(prog="organtuner")
 #argparser.add_argument("-trigger", help="File path to /dev/input/X to which this script will listen. Leave out for keyboard trigger.")
 argparser.add_argument("port", help="Name of port corresponding to the device to which MIDI notes are sent. ")
-argparser.add_argument("channel", help="MIDI channel to send to.", type=int, choices=range(1, 4))
 
 args = argparser.parse_args()
 
-port = mido.open_output(args.port)
-print(f"Port {args.port} opened")
+
+class MainApplication(tk.Frame):
+    def __init__(self, parent, organ_controller, *args, **kwargs):
+        self.parent = parent
+        self.frame = tk.Frame(parent, *args, **kwargs)
+        self.organ_controller = organ_controller
+        left_frame = tk.Frame(self.frame)
+        left_frame.grid(row=0, column=0, sticky="nswe")
+        instrument_label = tk.Label(left_frame, text="Instrument {}".format(self.organ_controller.instrument_name))
+        instrument_label.config(font=('TkDefaultFont', 44))
+        #instrument_label.pack()
+        instrument_label.grid(row=0, column=0, sticky="nswe")
+        ref_instrument_label = tk.Label(left_frame, text="Instrument {}".format(self.organ_controller.ref_instrument_name))
+        ref_instrument_label.config(font=('TkDefaultFont', 44))
+        #ref_instrument_label.pack()
+        ref_instrument_label.grid(row=1, column=0, sticky="nswe")
+
+        right_frame = tk.Frame(self.frame)
+        right_frame.grid(row=0, column=1, sticky="nswe")
+        self.note_var = tk.StringVar()
+        self.note_var.set(self.organ_controller.get_note_name())
+        note_label = tk.Label(right_frame, textvariable=self.note_var)
+        note_label.config(font=('TkDefaultFont', 60))
+        #note_label.pack()
+        note_label.grid(row=0, column=0, columnspan=2, sticky="nswe")
+        self.status_var = tk.StringVar()
+        self.status_var.set("Target: ⏵")
+        status_label = tk.Label(right_frame, textvariable=self.status_var)
+        status_label.config(font=('TkDefaultFont', 60))
+        status_label.grid(row=1,column=0, sticky="nswe")
+
+        self.frame.pack()
+        parent.bind("<Button-1>", self.on_left_mouse_click)
+        parent.bind("<Double-Button-1>", self.on_left_mouse_double)
+        parent.bind("<Button-3>", self.on_right_mouse_click)
+        parent.bind("<Double-Button-3>", self.on_right_mouse_double)
+        parent.bind("<Button-2>", self.on_middle_mouse_click)
+        parent.bind("<Double-Button-2>", self.on_middle_mouse_double)
+        parent.grab_set_global()
+        self.check_double_left = False
+        self.check_double_right = False
+        self.check_double_middle = False
+
+        self.organ_controller.start()
+
+
+    def on_left_mouse_click(self, event = None):
+        # Delay acting until we know we didn't receive double click's first button down event
+        self.frame.after(200, self.on_left_mouse_action)
+
+    def on_left_mouse_double(self, event = None):
+        self.check_double_left = True
+
+    def on_left_mouse_action(self, event = None):
+        if self.check_double_left:
+            self.organ_controller.play_prev_note()
+        else:
+            self.organ_controller.play_next_note()
+        self.note_var.set(self.organ_controller.get_note_name())
+        self.check_double_left = False
+
+    def on_right_mouse_click(self, event = None):
+        self.frame.after(200, self.on_right_mouse_action)
+
+    def on_right_mouse_double(self, event = None):
+        self.check_double_right = True
+
+    def on_right_mouse_action(self, event = None):
+        #if self.check_double_right:
+        # Do small chord or figure test
+        #else:
+            self.organ_controller.toggle_test()
+
+    def on_middle_mouse_click(self, event = None):
+        self.frame.after(200, self.on_middle_mouse_action)
+
+    def on_middle_mouse_double(self, event = None):
+        self.check_double_middle = True
+
+    def on_middle_mouse_action(self, event = None):
+        #if self.check_double_middle:
+        # Switch chord actions
+        #else:
+        self.organ_controller.toggle_pause()
+        if self.organ_controller.is_playing:
+            self.status_var.set("Target:⏵")
+        else:
+            self.status_var.set("Target:⏸")
 
 
 
-# Based on https://stackoverflow.com/a/510404 to be able to test this on Windows
-class _Getch:
-    """Gets a single character from standard input.  Does not echo to the screen."""
-    def __init__(self):
-        try:
-            self.impl = _GetchWindows()
-        except ImportError:
-            self.impl = _GetchUnix()
+if __name__ == "__main__":
+    root = tk.Tk()
 
-    def __call__(self): return self.impl()
-
-
-class _GetchUnix:
-    def __init__(self):
-        import tty, sys
-
-    def __call__(self):
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
-
-
-class _GetchWindows:
-    def __init__(self):
-        import msvcrt
-
-    def __call__(self):
-        import msvcrt
-        return msvcrt.getwch().encode()
+    organ_controller = OrganController(args.port)
     
-def get_note_name(currentNote):
-    note_names = ['C','C#','D','D#','E','F','F#','G','G#','A','Bb','B']
-    # Helmholtz / German notation. Octave indication works differently though
-    # note_names = ['c','c#','d','d#','e','f','f#','g','g#','a','b','h']
-    root_note = 60
-    octave_offset = 2 # Assumption that middle C is C3, lowest is C-2
-    index = (currentNote) % 12
-    octave = int(currentNote / 12) - octave_offset
-    return '{}{}'.format(note_names[index], octave)
+    def on_closing(window):
+        organ_controller.stop()
+        root.destroy()
+
+    app = MainApplication(root, organ_controller)
+    #root.wm_overrideredirect(True)
+    root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
+    root.bind("<Escape>", on_closing)
+    #.pack(side="top", fill="both", expand=True)
+    root.mainloop()
 
 
-getch = _Getch()
-
-outChannel = (args.channel - 1)
-
-
-
-
-if (args.channel == 1):
-    notes = list(range(36,66))
-    currentNoteIndex = 14
-else:
-    notes = list(range(36,97))
-    currentNoteIndex = 14
-
-maxNoteIndex = len(notes)
-currentNote = notes[currentNoteIndex]
-currentNoteName = get_note_name(currentNote)
-
-# Mostly for testing: use organ instrument
-instrmsg = mido.Message('program_change', program=16, channel=outChannel)
-port.send(instrmsg)
-
-try:
-
-    # Program can only be interrupted by Ctrl+C
-    while True:
-        msg = mido.Message('note_on', channel=outChannel, note=currentNote)
-        port.send(msg)
-        print('Sounding {:<3} - {}'.format(currentNoteName, currentNote))
-
-        time.sleep(progressDelay)
-
-        char = getch()
-        # For Windows, Linux might raise a keyboard interrupt exception anyway
-        if (char[0] == 3):
-            raise KeyboardInterrupt()
-
-        msg = mido.Message('note_off', channel=outChannel, note=currentNote)
-        port.send(msg)
-
-        currentNoteIndex += 1
-        if (currentNoteIndex >= maxNoteIndex):
-            currentNoteIndex = 0
-        currentNote = notes[currentNoteIndex]
-        currentNoteName = get_note_name(currentNote)
-
-finally:
-        print("Turning off all notes")
-        port.panic()
-        port.reset()
-        port.close()
-
+# Todo
+# setup main window
+# main window splits in a left and right half
+# left half has actions
+# right half shows current key and instrument, pause / play button (U+23F8 ⏸ vs U+23F5 ⏵)
