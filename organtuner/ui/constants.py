@@ -1,0 +1,5 @@
+
+DEFAULT_FONT = 'TkDefaultFont'
+
+LARGE_FONTSIZE = 60
+XL_FONTSIZE = 80

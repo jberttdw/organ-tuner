@@ -1,5 +1,5 @@
 import mido
-from organinstrument import *
+from organtuner.organinstrument import *
 
 
 class OrganController:
@@ -12,6 +12,7 @@ class OrganController:
 
         # Start somewhere in the middle of a range so we don't go for super low note at start
         self.current_note_index = 14
+
         self.play_ref = True
 
         # TODO Make a list of instruments and expose it
@@ -25,17 +26,6 @@ class OrganController:
 
         #self.instrument = OrganInstrument(self.port, 2, "Xylophon", 74)
         #self.ref_instrument = OrganInstrument(self.port, 1, "Flöte 4'", 51) 
-
-    @classmethod
-    def _get_note_name(cls, currentNote):
-        note_names = ['C','C#','D','D#','E','F','F#','G','G#','A','Bb','B']
-        # Helmholtz / German notation. Octave indication works differently though
-        # note_names = ['c','c#','d','d#','e','f','f#','g','g#','a','b','h']
-        root_note = 60
-        octave_offset = 2 # Assumption that middle C is C3, lowest is C-2
-        index = (currentNote) % 12
-        octave = int(currentNote / 12) - octave_offset
-        return '{}{}'.format(note_names[index], octave)
     
     @property
     def instrument_name(self):
@@ -49,9 +39,25 @@ class OrganController:
     def is_playing(self):
         return self.instrument.is_playing
     
+    @property
+    def is_ref_playing(self):
+        return self.ref_instrument.is_playing
+
+    @classmethod
+    def _get_note_name(cls, currentNote):
+        note_names = ['C','C#','D','D#','E','F','F#','G','G#','A','Bb','B']
+        # Helmholtz / German notation. Octave indication works differently though
+        # note_names = ['c','c#','d','d#','e','f','f#','g','g#','a','b','h']
+        root_note = 60
+        octave_offset = 2 # Assumption that middle C is C3, lowest is C-2
+        index = (currentNote) % 12
+        octave = int(currentNote / 12) - octave_offset
+        return '{}{}'.format(note_names[index], octave)
+    
     def get_note_name(self):
-        note_name = self._get_note_name(self.current_note_index)
-        return '{:<3} - {}'.format(note_name, self.current_note_index)
+        note = self.instrument.notes[self.current_note_index]
+        note_name = self._get_note_name(note)
+        return '{:<3} - {}'.format(note_name, note)
 
     def start(self):
         self.instrument.activate()
