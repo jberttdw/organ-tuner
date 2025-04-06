@@ -11,7 +11,8 @@ class OrganController:
             self.port.send(instrmsg)
 
         # Start an octave up from start of range so we don't go for super low note at start
-        self.current_note_index = 12
+        self.safe_start_note_index = 14
+        self.current_note_index = self.safe_start_note_index
 
         self.cycled_notes = 0
         self._play_ref = True
@@ -82,10 +83,11 @@ class OrganController:
     def start(self):
         self._instrument.activate()
         self._ref_instrument.activate()
-        note = self._instrument.notes[self.current_note_index]
-        self._instrument.play(note)
-        if self._play_ref:
-            self._ref_instrument.play(note)
+
+        #note = self._instrument.notes[self.current_note_index]
+        #self._instrument.play(note)
+        #if self._play_ref:
+        #    self._ref_instrument.play(note)
 
     def stop_reference(self):
         self._ref_instrument.stop()
@@ -95,7 +97,7 @@ class OrganController:
             self._instrument.stop()
             self._ref_instrument.stop()
         else:
-            self._play_note_at_index(self._play_ref)
+            self._play_note_at_index()
 
     def toggle_test(self):
         self._play_ref = not self._play_ref
@@ -106,26 +108,35 @@ class OrganController:
             note = self._instrument.notes[self.current_note_index]
             self._ref_instrument.play(note)
 
-    def _play_note_at_index(self, play_reference):
-        if self.current_note_index < 0:
-            self.current_note_index = len(self._instrument.notes) - 1
-        elif self.current_note_index >= len(self._instrument.notes):
-            self.current_note_index = 0
-        self._instrument.stop()
-        self._ref_instrument.stop()
-
+    def _play_note_at_index(self):
         note = self._instrument.notes[self.current_note_index]
         self._instrument.play(note)
-        if play_reference:
+        if self._play_ref:
             self._ref_instrument.play(note)
+
+    def _move_to_note_at_index(self):
+        # TODO Trigger "ta-daa" action while sticking to end of range
+        if self.current_note_index < 0:
+            self.current_note_index = self.safe_start_note_index
+        elif self.current_note_index >= len(self._instrument.notes):
+            self.current_note_index = self.safe_start_note_index
+
+        play_new = False
+        if self._instrument.is_playing:
+            self._instrument.stop()
+            self._ref_instrument.stop()
+            play_new = True
+
+        if play_new:
+            self._play_note_at_index()
 
     def play_next_note(self):
         self.current_note_index += 1
-        self._play_note_at_index(self._ref_instrument.is_playing)
+        self._move_to_note_at_index()
 
     def play_prev_note(self):
         self.current_note_index -= 1
-        self._play_note_at_index(self._ref_instrument.is_playing)
+        self._move_to_note_at_index()
 
     def stop(self):
         self._instrument.stop()
@@ -137,10 +148,23 @@ class OrganController:
         self.port.close()
 
     def switch_instrument(self, index):
-        self._instrument.stop()
-        self._ref_instrument.stop()
+        play_new = False
+        if self._instrument.is_playing:
+            self._instrument.stop()
+            self._ref_instrument.stop()
+            play_new = True
+
+        self._instrument.deactivate()
+        self._ref_instrument.deactivate()
+
+        self.current_note_index = self.safe_start_note_index
         if index < 0 or index > len(self._instruments):
             index = 0
         self._current_instrument_index = index
         self._instrument, self._ref_instrument = self._instruments[self._current_instrument_index]
-        self.start()
+
+        self._instrument.activate()
+        self._ref_instrument.activate()
+        
+        if play_new:
+            self.toggle_pause()
