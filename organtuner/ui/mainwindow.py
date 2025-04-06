@@ -103,7 +103,7 @@ class MainApplication(tk.Frame):
     def on_scroll_action(self, event = None):
         if not self.pick_instrument_mode:
             return
-        if event.delta <= 0:
+        if event.delta > 0:
             self.instrument_frame.prev_instrument()
         else:
             self.instrument_frame.next_instrument()
