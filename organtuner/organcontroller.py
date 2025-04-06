@@ -10,11 +10,12 @@ class OrganController:
             instrmsg = mido.Message('program_change', program=16 + i, channel=i)
             self.port.send(instrmsg)
 
-        # Start somewhere in the middle of a range so we don't go for super low note at start
-        self.current_note_index = 14
+        # Start an octave up from start of range so we don't go for super low note at start
+        self.current_note_index = 12
 
         self.cycled_notes = 0
         self._play_ref = True
+        self._instrument_n = 0
 
         flute4 = OrganInstrument(self.port, 1, "Flöte 4'", 51)
         travflute8 = OrganInstrument(self.port, 1, "Travers Flöte 8'", 41)
@@ -27,7 +28,7 @@ class OrganController:
                 (OrganInstrument(self.port, 2, "Xylophon", 74), flute4),
             ]
         
-        self._instrument, self._ref_instrument = self._instruments[0]
+        self._instrument, self._ref_instrument = self._instruments[self._instrument_n]
  
         instrument_names = []
         for instrument in self._instruments:
@@ -37,6 +38,10 @@ class OrganController:
     @property
     def instrument_names(self):
         return self._instrument_names
+    
+    @property
+    def instrument_n_active(self):
+        return self._instrument_n
 
     @property
     def instrument_name(self):
@@ -53,6 +58,10 @@ class OrganController:
     @property
     def is_ref_playing(self):
         return self._ref_instrument.is_playing
+    
+    @property
+    def is_ref_active(self):
+        return self._play_ref
 
     @classmethod
     def _get_note_name(cls, currentNote):
@@ -128,8 +137,10 @@ class OrganController:
         self.port.close()
 
     def switch_instrument(self, index):
-        self.stop()
+        self._instrument.stop()
+        self._ref_instrument.stop()
         if index < 0 or index > len(self._instruments):
-            self._current_instrument_index = 0
+            index = 0
+        self._current_instrument_index = index
         self._instrument, self._ref_instrument = self._instruments[self._current_instrument_index]
         self.start()

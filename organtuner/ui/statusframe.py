@@ -32,7 +32,10 @@ class StatusFrame(tk.Frame):
             self.status_var.set("Target:⏵")
         else:
             self.status_var.set("Target:⏸")
-        if self.organ_controller.is_ref_playing:
+
+        if not self.organ_controller.is_ref_active:
+            self.ref_status_var.set("Reference:⏹")
+        elif self.organ_controller.is_ref_playing:
             self.ref_status_var.set("Reference:⏵")
         else:
             self.ref_status_var.set("Reference:⏸")

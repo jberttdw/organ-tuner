@@ -25,6 +25,7 @@ class OrganInstrument:
 
     def activate(self):
         msg = mido.Message('note_on', channel=15, note=self.activation_note, velocity=1)
+        print("Activated {}".format(self.name))
         self.port.send(msg)
 
     def deactivate(self):

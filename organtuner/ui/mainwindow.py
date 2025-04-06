@@ -8,7 +8,7 @@ class MainApplication(tk.Frame):
         self.organ_controller = organ_controller
 
         self.instrument_frame = instrumentframe.InstrumentFrame(self.frame, self.organ_controller)
-        self.instrument_frame.frame.grid(row=0, column=0, sticky="nswe", padx=80)
+        self.instrument_frame.frame.grid(row=0, column=0, sticky="nswe", padx=10)
 
         self.status_frame = statusframe.StatusFrame(self.frame, self.organ_controller)
         self.status_frame.frame.grid(row=0, column=1, pady=400)
@@ -80,14 +80,19 @@ class MainApplication(tk.Frame):
         self.check_double_middle = True
 
     def on_middle_mouse_action(self, event = None):
-        # Exit instrument picking mode
+        # Confirm instrument choice if instrument picking was active
         if self.pick_instrument_mode:
             self.pick_instrument_mode = False
+            self.instrument_frame.confirm_instrument()
+            self.status_frame.update()
             return
+        
         if self.check_double_middle:
+            self.pick_instrument_mode = True
+            self.instrument_frame.enable_selection()
+            # Also stop
             if self.organ_controller.is_playing:
                 self.organ_controller.toggle_pause()
-            self.pick_instrument_mode = True
         else:
             self.organ_controller.toggle_pause()
         self.status_frame.update()
@@ -99,6 +104,6 @@ class MainApplication(tk.Frame):
         if not self.pick_instrument_mode:
             return
         if event.delta <= 0:
-            print("up")
+            self.instrument_frame.prev_instrument()
         else:
-            print("down")    
+            self.instrument_frame.next_instrument()
