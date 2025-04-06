@@ -6,7 +6,6 @@ class StatusFrame(tk.Frame):
         self.parent = parent
         self.frame = tk.Frame(parent)
         self.organ_controller = organ_controller
-        self.frame.grid(row=0, column=1, pady=400)
 
         self.note_var = tk.StringVar()
         self.note_var.set("")

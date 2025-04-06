@@ -1,5 +1,5 @@
 import tkinter as tk
-from organtuner.ui import constants, statusframe
+from organtuner.ui import constants, statusframe, instrumentframe
 
 class MainApplication(tk.Frame):
     def __init__(self, parent, organ_controller, *args, **kwargs):
@@ -7,16 +7,11 @@ class MainApplication(tk.Frame):
         self.frame = tk.Frame(parent, *args, **kwargs)
         self.organ_controller = organ_controller
 
-        left_frame = tk.Frame(self.frame)
-        left_frame.grid(row=0, column=0, sticky="nswe", padx=80)
-        instrument_label = tk.Label(left_frame, text="Tuning {}".format(self.organ_controller.instrument_name))
-        instrument_label.config(font=(constants.DEFAULT_FONT, constants.LARGE_FONTSIZE))
-        instrument_label.grid(row=0, column=0, sticky="nswe")
-        ref_instrument_label = tk.Label(left_frame, text="Comparing {}".format(self.organ_controller.ref_instrument_name))
-        ref_instrument_label.config(font=(constants.DEFAULT_FONT, constants.LARGE_FONTSIZE))
-        ref_instrument_label.grid(row=1, column=0, sticky="nswe")
+        self.instrument_frame = instrumentframe.InstrumentFrame(self.frame, self.organ_controller)
+        self.instrument_frame.frame.grid(row=0, column=0, sticky="nswe", padx=80)
 
         self.status_frame = statusframe.StatusFrame(self.frame, self.organ_controller)
+        self.status_frame.frame.grid(row=0, column=1, pady=400)
 
         self.frame.pack()
         parent.bind("<Button-1>", self.on_left_mouse_click)
@@ -34,6 +29,7 @@ class MainApplication(tk.Frame):
         self.pick_instrument_mode = False
 
         self.organ_controller.start()
+        self.instrument_frame.update()
         self.status_frame.update()
 
 
