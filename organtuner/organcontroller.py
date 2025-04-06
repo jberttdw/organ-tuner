@@ -13,35 +13,46 @@ class OrganController:
         # Start somewhere in the middle of a range so we don't go for super low note at start
         self.current_note_index = 14
 
-        self.play_ref = True
+        self.cycled_notes = 0
+        self._play_ref = True
 
-        # TODO Make a list of instruments and expose it
+        flute4 = OrganInstrument(self.port, 1, "Flöte 4'", 51)
+        travflute8 = OrganInstrument(self.port, 1, "Travers Flöte 8'", 41)
 
-        self.instrument = OrganInstrument(self.port, 0, "Saxophon 8'", 33)
-        self.ref_instrument = OrganInstrument(self.port, 1, "Flöte 4'", 51)
+        self._current_instrument_index = 0
+        self._instruments = [
+                (OrganInstrument(self.port, 2, "Saxophon 8'  ", 107), flute4),
+                (OrganInstrument(self.port, 2, "VoxHumana 16'", 100), travflute8),
+                (OrganInstrument(self.port, 2, "Oboe 8'", 106), flute4),
+                (OrganInstrument(self.port, 2, "Xylophon", 74), flute4),
+            ]
+        
+        self._instrument, self._ref_instrument = self._instruments[0]
+ 
+        instrument_names = []
+        for instrument in self._instruments:
+            instrument_names.append(instrument[0].name)
+        self._instrument_names = instrument_names
 
+    @property
+    def instrument_names(self):
+        return self._instrument_names
 
-        #self.instrument = OrganInstrument(self.port, 1, "Oboe 8'", 44)
-        #self.ref_instrument = OrganInstrument(self.port, 2, "Geige 8'", 102)
-
-        #self.instrument = OrganInstrument(self.port, 2, "Xylophon", 74)
-        #self.ref_instrument = OrganInstrument(self.port, 1, "Flöte 4'", 51) 
-    
     @property
     def instrument_name(self):
-        return self.instrument.name
+        return self._instrument.name
 
     @property
     def ref_instrument_name(self):
-        return self.ref_instrument.name
+        return self._ref_instrument.name
     
     @property
     def is_playing(self):
-        return self.instrument.is_playing
+        return self._instrument.is_playing
     
     @property
     def is_ref_playing(self):
-        return self.ref_instrument.is_playing
+        return self._ref_instrument.is_playing
 
     @classmethod
     def _get_note_name(cls, currentNote):
@@ -55,71 +66,70 @@ class OrganController:
         return '{}{}'.format(note_names[index], octave)
     
     def get_note_name(self):
-        note = self.instrument.notes[self.current_note_index]
+        note = self._instrument.notes[self.current_note_index]
         note_name = self._get_note_name(note)
         return '{:<3} - {}'.format(note_name, note)
 
     def start(self):
-        self.instrument.activate()
-        self.ref_instrument.activate()
-        note = self.instrument.notes[self.current_note_index]
-        self.instrument.play(note)
-        self.ref_instrument.play(note)
+        self._instrument.activate()
+        self._ref_instrument.activate()
+        note = self._instrument.notes[self.current_note_index]
+        self._instrument.play(note)
+        if self._play_ref:
+            self._ref_instrument.play(note)
 
     def stop_reference(self):
-        self.ref_instrument.stop()
+        self._ref_instrument.stop()
 
     def toggle_pause(self):
-        if self.instrument.is_playing:
-            self.instrument.stop()
-            self.ref_instrument.stop()
+        if self._instrument.is_playing:
+            self._instrument.stop()
+            self._ref_instrument.stop()
         else:
-            self._play_note_at_index(self.play_ref)
+            self._play_note_at_index(self._play_ref)
 
     def toggle_test(self):
-        self.play_ref = not self.play_ref
-        print("Playing reference: {}".format(self.play_ref))
-        if not self.play_ref and self.ref_instrument.is_playing:
-            self.ref_instrument.stop()
-        elif self.play_ref and self.instrument.is_playing and not self.ref_instrument.is_playing:
-            note = self.instrument.notes[self.current_note_index]
-            self.ref_instrument.play(note)
+        self._play_ref = not self._play_ref
+        print("Playing reference: {}".format(self._play_ref))
+        if not self._play_ref and self._ref_instrument.is_playing:
+            self._ref_instrument.stop()
+        elif self._play_ref and self._instrument.is_playing and not self._ref_instrument.is_playing:
+            note = self._instrument.notes[self.current_note_index]
+            self._ref_instrument.play(note)
+
+    def _play_note_at_index(self, play_reference):
+        if self.current_note_index < 0:
+            self.current_note_index = len(self._instrument.notes) - 1
+        elif self.current_note_index >= len(self._instrument.notes):
+            self.current_note_index = 0
+        self._instrument.stop()
+        self._ref_instrument.stop()
+
+        note = self._instrument.notes[self.current_note_index]
+        self._instrument.play(note)
+        if play_reference:
+            self._ref_instrument.play(note)
+
+    def play_next_note(self):
+        self.current_note_index += 1
+        self._play_note_at_index(self._ref_instrument.is_playing)
+
+    def play_prev_note(self):
+        self.current_note_index -= 1
+        self._play_note_at_index(self._ref_instrument.is_playing)
 
     def stop(self):
-        self.instrument.stop()
-        self.ref_instrument.stop()
-        self.instrument.deactivate()
-        self.ref_instrument.deactivate()
+        self._instrument.stop()
+        self._ref_instrument.stop()
+        self._instrument.deactivate()
+        self._ref_instrument.deactivate()
         self.port.panic()
         self.port.reset()
         self.port.close()
 
-    def _play_note_at_index(self, play_reference):
-        if self.current_note_index < 0:
-            self.current_note_index = len(self.instrument.notes) - 1
-        elif self.current_note_index >= len(self.instrument.notes):
-            self.current_note_index = 0
-        self.instrument.stop()
-        self.ref_instrument.stop()
-
-        note = self.instrument.notes[self.current_note_index]
-        self.instrument.play(note)
-        if play_reference:
-            self.ref_instrument.play(note)
-
-    def play_next_note(self):
-        self.current_note_index += 1
-        self._play_note_at_index(self.ref_instrument.is_playing)
-
-    def play_prev_note(self):
-        self.current_note_index -= 1
-        self._play_note_at_index(self.ref_instrument.is_playing)
-
-    # # Similar to play next note, just doesn't play the reference instrument
-    # def test_next_note(self):
-    #     self.current_note_index += 1
-    #     self._play_note_at_index(False)
-
-    # def test_prev_note(self):
-    #     self.current_note_index -= 1
-    #     self._play_note_at_index(False)
+    def switch_instrument(self, index):
+        self.stop()
+        if index < 0 or index > len(self._instruments):
+            self._current_instrument_index = 0
+        self._instrument, self._ref_instrument = self._instruments[self._current_instrument_index]
+        self.start()
