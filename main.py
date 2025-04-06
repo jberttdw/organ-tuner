@@ -34,7 +34,7 @@ if __name__ == "__main__":
         root.destroy()
 
     app = MainApplication(root, organ_controller)
-    #root.wm_overrideredirect(True)
+    root.wm_overrideredirect(True)
     root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
     root.bind("<Escape>", on_closing)
     #.pack(side="top", fill="both", expand=True)
