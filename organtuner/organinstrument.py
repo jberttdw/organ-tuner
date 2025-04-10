@@ -4,16 +4,19 @@ from time import sleep
 # Activates an instrument on the organ.
 # In the case of the organ at SMMK we need to send a note on the highest MIDI channel.
 class OrganInstrument:
-    def __init__(self, port, channel_id, name, activation_note):
+    def __init__(self, port, channel_id, name, activation_note, note_range=None):
         self.port = port
         self.channel_id = channel_id
         self.name = name
         self.activation_note = activation_note
         self.current_note = -1
-        if channel_id == 0:
-            self._notes = list(range(36,66))
+        if note_range == None:
+            if channel_id == 0:
+                self._notes = list(range(36,66))
+            else:
+                self._notes = list(range(36,97))
         else:
-            self._notes = list(range(36,97))
+            self._notes = list(note_range)
 
     @property
     def notes(self):

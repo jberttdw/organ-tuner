@@ -24,9 +24,9 @@ class OrganController:
         self._current_instrument_index = 0
         self._instruments = [
                 (OrganInstrument(self.port, 2, "Saxophon 8'  ", 107), flute4),
-                (OrganInstrument(self.port, 2, "VoxHumana 16'", 100), travflute8),
+                (OrganInstrument(self.port, 2, "VoxHumana 16'", 100, range(48,97)), travflute8),
                 (OrganInstrument(self.port, 2, "Oboe 8'", 106), flute4),
-                (OrganInstrument(self.port, 2, "Xylophon", 74), flute4),
+                (OrganInstrument(self.port, 2, "Xylophon", 74, range(60,85)), flute4),
             ]
         
         self._instrument, self._ref_instrument = self._instruments[self._instrument_n]
@@ -165,6 +165,6 @@ class OrganController:
 
         self._instrument.activate()
         self._ref_instrument.activate()
-        
+
         if play_new:
             self.toggle_pause()
