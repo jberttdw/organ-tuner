@@ -7,6 +7,7 @@
 import mido
 import argparse
 import time
+import traceback
 import tkinter as tk
 from organtuner.organcontroller import *
 from organtuner.organinstrument import *
@@ -30,8 +31,12 @@ if __name__ == "__main__":
     organ_controller = OrganController(args.port)
     
     def on_closing(window):
-        organ_controller.stop()
+        try:
+            organ_controller.stop()
+        except Exception:
+            traceback.print_exc()
         root.destroy()
+
 
     app = MainApplication(root, organ_controller)
     root.wm_overrideredirect(True)
