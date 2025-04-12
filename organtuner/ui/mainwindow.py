@@ -22,7 +22,6 @@ class MainApplication(tk.Frame):
         parent.bind("<Double-Button-2>", self.on_middle_mouse_double)
         # This might actually be button 4 and 5 on X11 platforms
         parent.bind("<MouseWheel>", self.on_scroll_action)
-        parent.grab_set_global()
         self.check_double_left = False
         self.check_double_right = False
         self.check_double_middle = False
