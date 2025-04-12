@@ -41,6 +41,8 @@ if __name__ == "__main__":
 
     root.wm_overrideredirect(True)
     root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
+    root.wait_visibility()
+    
     root.grab_set_global()
     
     root.bind("<Escape>", on_closing)
