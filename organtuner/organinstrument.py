@@ -27,14 +27,16 @@ class OrganInstrument:
         return self.current_note > -1
 
     def activate(self):
-        msg = mido.Message('note_on', channel=15, note=self.activation_note, velocity=1)
-        print("Activated {}, note {}".format(self.name, self.activation_note))
-        self.port.send(msg)
+        if self.activation_note != None:
+            msg = mido.Message('note_on', channel=15, note=self.activation_note, velocity=1)
+            print("Activated {}, note {}".format(self.name, self.activation_note))
+            self.port.send(msg)
 
     def deactivate(self):
-        msg = mido.Message('note_off', channel=15, note=self.activation_note, velocity=1)
-        print("Deactivated {}, note {}".format(self.name, self.activation_note))
-        self.port.send(msg)
+        if self.activation_note != None:
+            msg = mido.Message('note_off', channel=15, note=self.activation_note, velocity=1)
+            print("Deactivated {}, note {}".format(self.name, self.activation_note))
+            self.port.send(msg)
 
     def play(self, note):
         if not (note in self.notes):

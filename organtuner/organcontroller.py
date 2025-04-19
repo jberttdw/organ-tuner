@@ -24,6 +24,10 @@ class OrganController:
         ch2geige4 = OrganInstrument(self.port, 2, "Geige 4'", 109)
         ch1geige8 = OrganInstrument(self.port, 1, "Geige 8'", 39)
         ch2geige8 = OrganInstrument(self.port, 2, "Geige 8'", 102)
+        # "Instruments" which don't activate anything, let console decide
+        ch0spieltisch = OrganInstrument(self.port, 1, "Spieltisch Pedal", None)
+        ch1spieltisch = OrganInstrument(self.port, 1, "Spieltisch Man I", None)
+        ch2spieltisch = OrganInstrument(self.port, 2, "Spieltisch Man II", None)
 
         self._current_instrument_index = 0
         self._instruments = [
@@ -38,6 +42,9 @@ class OrganController:
                 (ch1flute4, ch2geige4),
                 (ch1travflute8, ch2geige4),
                 (OrganInstrument(self.port, 1, "Flöte 16'", 36), ch2geige8),
+                (ch0spieltisch, ch1spieltisch),
+                (ch1spieltisch, ch2spieltisch),
+                (ch2spieltisch, ch1spieltisch),
             ]
         
         self._instrument, self._ref_instrument = self._instruments[self._instrument_n]
