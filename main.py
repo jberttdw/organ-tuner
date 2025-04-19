@@ -39,7 +39,9 @@ if __name__ == "__main__":
 
     app = MainApplication(root, organ_controller)
 
-    root.wm_overrideredirect(True)
+    #root.wm_overrideredirect(True)
+    root.attributes("-fullscreen", True)
+    root.wm_attributes("-topmost", 1) # Keep on top
     root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
     root.wait_visibility()
     
