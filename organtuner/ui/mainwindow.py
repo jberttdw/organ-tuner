@@ -22,6 +22,9 @@ class MainApplication(tk.Frame):
         parent.bind("<Double-Button-2>", self.on_middle_mouse_double)
         # This might actually be button 4 and 5 on X11 platforms
         parent.bind("<MouseWheel>", self.on_scroll_action)
+        # Mouse up - down
+        parent.bind("<Button-4>", self.on_scroll_up_action)
+        parent.bind("<Button-5>", self.on_scroll_dn_action)
         self.check_double_left = False
         self.check_double_right = False
         self.check_double_middle = False
@@ -97,6 +100,16 @@ class MainApplication(tk.Frame):
         self.status_frame.update()
         self.check_double_middle = False
 
+
+    def on_scroll_up_action(self, event = None):
+        if not self.pick_instrument_mode:
+            return
+        self.instrument_frame.prev_instrument()
+
+    def on_scroll_dn_action(self, event = None):
+        if not self.pick_instrument_mode:
+            return
+        self.instrument_frame.next_instrument()
 
 
     def on_scroll_action(self, event = None):
