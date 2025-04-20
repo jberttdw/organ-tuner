@@ -31,20 +31,20 @@ class OrganController:
 
         self._current_instrument_index = 0
         self._instruments = [
-                #(OrganInstrument(self.port, 2, "Saxophon 8'  ", 107), ch1flute4),
-                (OrganInstrument(self.port, 1, "Saxophon 8'  ", 46), ch2geige4),
-                #(OrganInstrument(self.port, 2, "VoxHumana 16'", 100, range(48,97)), ch1travflute8),
-                (OrganInstrument(self.port, 2, "VoxHumana 16'", 100, range(48,97)), ch1geige8),
-                #(OrganInstrument(self.port, 2, "Oboe 8'", 106), ch1flute4),
-                (OrganInstrument(self.port, 1, "Oboe 8'", 44), ch2geige4),
-                (OrganInstrument(self.port, 2, "Xylophon", 74, range(60,85)), ch1geige8),
+                (ch2spieltisch, ch1spieltisch),
+                (ch1spieltisch, ch2spieltisch),
+                (ch0spieltisch, ch1spieltisch),
+                (OrganInstrument(self.port, 2, "Saxophon 8'  ", 107), ch1flute4),
+                #(OrganInstrument(self.port, 1, "Saxophon 8'  ", 46), ch2geige4),
+                (OrganInstrument(self.port, 2, "VoxHumana 16'", 100, range(48,97)), ch1travflute8),
+                #(OrganInstrument(self.port, 2, "VoxHumana 16'", 100, range(48,97)), ch1geige8),
+                (OrganInstrument(self.port, 2, "Oboe 8'", 106), ch1flute4),
+                #(OrganInstrument(self.port, 1, "Oboe 8'", 44), ch2geige4),
+                (OrganInstrument(self.port, 2, "Xylophon", 74, range(60,85)), ch1travflute8),
                 (ch2geige4, ch1travflute8),
                 (ch1flute4, ch2geige4),
                 (ch1travflute8, ch2geige4),
                 (OrganInstrument(self.port, 1, "Flöte 16'", 36), ch2geige8),
-                (ch0spieltisch, ch1spieltisch),
-                (ch1spieltisch, ch2spieltisch),
-                (ch2spieltisch, ch1spieltisch),
             ]
         
         self._instrument, self._ref_instrument = self._instruments[self._instrument_n]
